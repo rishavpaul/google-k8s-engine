@@ -1,0 +1,108 @@
+
+### 1. Creating a cluster
+
+```bash
+gcloud container clusters create kubia-v2 \
+  --num-nodes 1 \
+  --machine-type e2-small \
+  --region us-west1 \
+  --enable-ip-alias \
+  --enable-private-nodes \
+  --master-ipv4-cidr 172.16.0.32/28 \
+  --disk-size 50 \
+  --disk-type pd-standard
+```
+
+This `gcloud` command is creating a Google Kubernetes Engine (GKE) cluster named `kubia-v2` with specific configurations. Here’s a detailed breakdown of each part of the command:
+
+#### Command Breakdown:
+
+1. **Cluster Creation**:
+   ```bash
+   gcloud container clusters create kubia-v2
+   ```
+   - This command creates a GKE cluster named `kubia-v2`.
+
+2. **Number of Nodes**:
+   ```bash
+   --num-nodes 3
+   ```
+   - The cluster will have **3 worker nodes** in its default node pool. Each node is a virtual machine (VM) that runs Kubernetes workloads (pods).
+
+3. **Machine Type**:
+   ```bash
+   --machine-type e2-small
+   ```
+   - Specifies that each node will use the **`e2-small`** machine type, which provides:
+     - 2 vCPUs
+     - 2 GB of memory
+   - This machine type is cost-effective and suitable for lightweight workloads.
+
+4. **Region**:
+   ```bash
+   --region us-west1
+   ```
+   - The cluster is deployed in the **`us-west1`** region. This defines where the nodes and control plane (master) will reside. Choosing a region close to your users can reduce latency.
+
+5. **Enable IP Alias (VPC-native Cluster)**:
+   ```bash
+   --enable-ip-alias
+   ```
+   - This flag enables **VPC-native networking** for the cluster, allowing Kubernetes Pods to use internal IP addresses from a **Google Cloud VPC**. This provides better scalability and network performance.
+   - Pods get their own unique IP addresses from a reserved IP range, instead of being NATed behind node IPs.
+
+6. **Private Nodes (No External IP on Nodes)**:
+   ```bash
+   --enable-private-nodes
+   ```
+   - This makes the nodes **private** by removing their external IP addresses. Nodes can only be accessed via internal IPs within the VPC.
+   - It enhances security, as the nodes are not directly reachable from the internet.
+
+7. ~Private Control Plane (Private Endpoint)~:
+   ```bash
+   --enable-private-endpoint
+   ```
+   - The control plane (master) will also have a **private IP address**, making it accessible only from within the VPC. This means you can’t access the Kubernetes API from the internet unless you're on the VPC or using a bastion host.
+   - This improves security by preventing public access to the Kubernetes API.
+
+8. **Master IP CIDR Range**:
+   ```bash
+   --master-ipv4-cidr 172.16.0.32/28
+   ```
+   - This specifies a **private CIDR block** (in this case, `172.16.0.32/28`) from which the control plane (master) IP will be assigned.
+   - The control plane uses this private IP range to communicate with worker nodes and other components within the cluster.
+
+9. **Disk Size**:
+   ```bash
+   --disk-size 50
+   ```
+   - Each node will have a **50 GB** persistent disk. This disk is used for local storage on the node, including the operating system, containers, and temporary pod data.
+   - The default size is typically 100 GB, but reducing it to 50 GB helps save costs if your workloads don’t require much local storage.
+
+10. **Disk Type**:
+   ```bash
+   --disk-type pd-standard
+   ```
+   - Specifies the disk type for the nodes as **standard persistent disk** (`pd-standard`), which is a cost-effective option compared to SSD disks (`pd-ssd`).
+   - Standard disks are slower than SSDs but more affordable, suitable for workloads that don’t require high disk performance.
+
+### Summary of What Happens:
+- A **GKE cluster named `kubia-v2`** will be created in the **`us-west1`** region.
+- The cluster will have **3 worker nodes**, each using **`e2-small`** machine types with **2 vCPUs and 2 GB of memory**.
+- Each node will have a **50 GB standard persistent disk** for storage.
+- **Private nodes** will be created (no external IPs on the nodes), and the **control plane** will also have a **private IP**, enhancing security.
+- The cluster will be **VPC-native** (using IP aliasing), allowing for efficient networking with internal IP addresses from the VPC.
+- A **private CIDR block** (`172.16.0.32/28`) will be used for control plane communication.
+
+This setup is designed to be cost-effective while securing the cluster by restricting access to the internal VPC network only.
+
+#### Accessing the cluster
+
+To allow your public IP address to access the GKE control plane, you need to update the master authorized networks configuration for your cluster. 
+
+```
+➜  ~ gcloud container clusters update kubia-v3 \
+    --region us-west1 \
+    --enable-master-authorized-networks \
+    --master-authorized-networks <Your-IP>/32
+```
