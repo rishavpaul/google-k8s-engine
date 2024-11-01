@@ -5,8 +5,8 @@ metadata:
 spec:
   type: NodePort
   ports:
-    - port: 80 # kubectl port-forward service/kubia-service 8080:80
-      targetPort: 8080
-      nodePort: 30000 
+    - port: 80  # External port
+      targetPort: 8080  # Port the container listens on
+      nodePort: 30000  # External port to access service
   selector:
     app: kubia

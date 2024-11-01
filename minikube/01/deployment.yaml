@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: kubia
 spec:
-  replicas: 1
+  replicas: 2  # Increase replicas for better availability
   selector:
     matchLabels:
       app: kubia
@@ -14,6 +14,26 @@ spec:
     spec:
       containers:
       - name: kubia
-        image: paulrishav93/kubia
+        image: paulrishav93/kubia:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 8080
+        resources:  # Set resource requests and limits
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        readinessProbe:  # Add a readiness probe
+          httpGet:
+            path: /health  # Adjust according to your application's health endpoint
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:  # Add a liveness probe
+          httpGet:
+            path: /liveness  # Adjust according to your application's health endpoint
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 20

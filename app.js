@@ -6,6 +6,8 @@ const path = require('path');
 const PORT = 8080;
 
 const handler = function (request, response) {
+    console.log(request.url);
+
     if (request.url === '/favicon.ico') {
         // Serve the favicon.ico file
         const iconPath = path.join(__dirname, 'favicon.ico');
@@ -18,6 +20,13 @@ const handler = function (request, response) {
             response.writeHead(200, { 'Content-Type': 'image/x-icon' });
             response.end(data);
         });
+        return;
+    }
+
+    // Health check endpoint
+    if (request.url === '/health' || request.url === '/liveness') {
+        response.writeHead(200, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ status: 'UP', hostname: os.hostname() }));
         return;
     }
 

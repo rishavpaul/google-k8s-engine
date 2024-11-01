@@ -13,8 +13,12 @@ RUN npm install
 # Copy the rest of the application code
 COPY . .
 
+RUN echo "Build process completed."
+
 # Expose the port the server runs on
 EXPOSE 8080
+
+RUN echo "Starting node app"
 
 # Start the server
 CMD ["node", "app.js"]
